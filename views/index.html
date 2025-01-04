@@ -7,43 +7,61 @@
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+
   <h1>Spotify Song Finder</h1>
+
   <form id="searchForm">
     <input type="text" id="searchQuery" placeholder="Search for a song or artist" required>
     <button type="submit">Search</button>
+    <select id="sortOption">
+      <option value="none">No Sorting</option>
+      <option value="popularity">Sort by Popularity</option>
+      <option value="releaseDate">Sort by Release Date</option>
+    </select>
   </form>
+
   <div id="results"></div>
 
   <script>
-        document.getElementById('searchForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const query = document.getElementById('searchQuery').value;
+    document.getElementById('searchForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const query = document.getElementById('searchQuery').value;
+      const sortOption = document.getElementById('sortOption').value;
 
-            fetch('/search', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ query })
-            })
-            .then(response => response.json())
-            .then(data => {
-                const resultsDiv = document.getElementById('results');
-                resultsDiv.innerHTML = '';
-                data.forEach(track => {
-                const trackElement = document.createElement('div');
-                trackElement.classList.add('track');
-                trackElement.innerHTML = `
-                    ${track.imageUrl ? `<img src="${track.imageUrl}" alt="${track.name}" class="track-image" />` : ''}
-                    <h3>${track.name}</h3>
-                    <p>Artist(s): ${track.artists}</p>
-                    <p>Album: ${track.album}</p>
-                    <p><a href="${track.url}" target="_blank">Listen on Spotify</a></p>
-                    <p>Release Date: ${track.releaseDate}</p>
-                `;
-                resultsDiv.appendChild(trackElement);
-                });
-            })
-    .catch(error => console.error('Error:', error));
+      fetch('/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ query })
+      })
+      .then(response => response.json())
+      .then(data => {
+        // If the user selects "No Sorting", do not sort the results
+        if (sortOption === 'popularity') {
+          data.sort((a, b) => b.popularity - a.popularity);  // Sort by popularity (highest to lowest)
+        } else if (sortOption === 'releaseDate') {
+          data.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));  // Sort by release date (newest to oldest)
+        }
+        // If "No Sorting" is selected, do nothing (default order)
+
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = '';
+        data.forEach(track => {
+          const trackElement = document.createElement('div');
+          trackElement.classList.add('track');
+          trackElement.innerHTML = `
+            ${track.imageUrl ? `<img src="${track.imageUrl}" alt="${track.name}" class="track-image" />` : ''}
+            <h3>${track.name}</h3>
+            <p>Artist(s): ${track.artists}</p>
+            <p>Album: ${track.album}</p>
+            <p><a href="${track.url}" target="_blank">Listen on Spotify</a></p>
+            <p>Release Date: ${track.releaseDate}</p>
+          `;
+          resultsDiv.appendChild(trackElement);
+        });
+      })
+      .catch(error => console.error('Error:', error));
     });
   </script>
+
 </body>
 </html>

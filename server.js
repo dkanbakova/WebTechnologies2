@@ -39,7 +39,8 @@ app.post('/search', (req, res) => {
         album: track.album.name,
         url: track.external_urls.spotify,
         imageUrl: track.album.images[0]?.url || '',
-        releaseDate: track.album.release_date
+        releaseDate: track.album.release_date,
+        popularity: track.popularity
       }));
       res.json(tracks);
     })
